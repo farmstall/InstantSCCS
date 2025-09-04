@@ -885,6 +885,7 @@ export const LevelingQuest: Quest = {
         get("_mayamSymbolsUsed").includes("yam4") ||
         !have($item`Mayam Calendar`),
       do: (): void => {
+        useFamiliar($familiar`Cooler Yeti`); // Set Cooler Yeti as familiar
         if (useCenser) {
           MayamCalendar.submit(MayamCalendar.toCombinationString(["fur", "yam2", "wall", "yam4"]));
         } else {
