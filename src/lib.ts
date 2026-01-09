@@ -10,6 +10,7 @@ import {
   equippedItem,
   Familiar,
   familiarWeight,
+  formatDateTime,
   getCampground,
   getClanName,
   getMonsters,
@@ -50,6 +51,7 @@ import {
   storageAmount,
   sweetSynthesis,
   takeStorage,
+  todayToString,
   toInt,
   toItem,
   toSkill,
@@ -96,6 +98,7 @@ import {
   uneffect,
   unequip,
   Witchess,
+  withProperty,
 } from "libram";
 import { printModtrace } from "libram/dist/modifier";
 import { excludedFamiliars, forbiddenEffects } from "./resources";
@@ -114,7 +117,7 @@ export const useParkaSpit =
   (have($item`Fourth of May Cosplay Saber`) && have($skill`Feel Envy`));
 export const useCenser = have($item`Sept-Ember Censer`) && !get("instant_saveEmbers", false);
 
-export const testModifiers = new Map([
+export const testModifiers: Map<CommunityService, string[]> = new Map([
   [CommunityService.HP, ["Maximum HP", "Maximum HP Percent", "Muscle", "Muscle Percent"]],
   [CommunityService.Muscle, ["Muscle", "Muscle Percent"]],
   [CommunityService.Mysticality, ["Mysticality", "Mysticality Percent"]],
@@ -128,7 +131,128 @@ export const testModifiers = new Map([
   [CommunityService.CoilWire, []],
 ]);
 
-export function checkGithubVersion(): void {
+export const testAbbreviations: Map<CommunityService, string> = new Map([
+  [CommunityService.HP, "hp"],
+  [CommunityService.Muscle, "mus"],
+  [CommunityService.Mysticality, "myst"],
+  [CommunityService.Moxie, "mox"],
+  [CommunityService.FamiliarWeight, "fam"],
+  [CommunityService.WeaponDamage, "weapon"],
+  [CommunityService.SpellDamage, "spell"],
+  [CommunityService.Noncombat, "com"],
+  [CommunityService.BoozeDrop, "booze"],
+  [CommunityService.HotRes, "hot"],
+  [CommunityService.CoilWire, "coil"],
+]);
+
+const testLimits: Map<CommunityService, number> = new Map([
+  [CommunityService.HP, 1],
+  [CommunityService.Muscle, 2],
+  [CommunityService.Mysticality, 1],
+  [CommunityService.Moxie, 5],
+  [CommunityService.FamiliarWeight, 50],
+  [CommunityService.WeaponDamage, 35],
+  [CommunityService.SpellDamage, 55],
+  [CommunityService.Noncombat, 12],
+  [CommunityService.BoozeDrop, 30],
+  [CommunityService.HotRes, 35],
+  [CommunityService.CoilWire, 60],
+]);
+
+function writeToWhiteboard(text: string): void {
+  visitUrl(`clan_basement.php?whiteboard=${text}&action=whitewrite`);
+}
+
+function readWhiteboard(): string {
+  return (
+    visitUrl("clan_basement.php?whiteboard=1")
+      .match(RegExp(/cols=60>([\s\S]*?)<\/textarea>/))
+      ?.at(1) ?? ""
+  ).replace(RegExp(/[\r\n]/), "\n");
+}
+
+export function updateRunStats(): void {
+  if (get("instant_collectData", false)) return;
+  try {
+    const text = readWhiteboard();
+    const SHA = checkGithubVersion(false).slice(0, 7);
+    const playerId = toInt(myId());
+    const date = todayToString();
+
+    // ========== DATA TO TRACK ===========
+    // Have club | # Club Em' Into Next Week Used | # Club Em' Back in Time Used
+    // eslint-disable-next-line libram/verify-constants
+    const remarks = `${toInt(have($item`legendary seal-clubbing club`))} | ${get("_clubEmNextWeekUsed", 0)}/${5 - get("instant_saveClubEmNextWeek", 0)} | ${get("_clubEmTimeUsed", 0)}/${5 - get("instant_saveClubEmTime", 0)} | ${get("clubEmNextWeekMonster", "")}`;
+    // ====================================
+
+    type textCheck = [boolean, string];
+    const parsedWhiteboard: textCheck[] = text.split("\n").map((row) => {
+      const parts = row.split(" ");
+      if (parts.length < 3) {
+        // print(`Bad Length: ${parts.length}`);
+        return [false, row];
+      }
+
+      const entryId = toInt(parts[1].match(RegExp(/\(#(\d+)\)/))?.at(1) ?? "-1");
+      if (entryId === -1) {
+        // print(`Bad Id: ${parts[1]}`);
+        return [false, row];
+      } else if (entryId === playerId) {
+        // print(`Player Id: ${entryId}`);
+        return [false, ""];
+      }
+
+      const entryDate = formatDateTime(
+        "dd-MM-yy",
+        parts[0].match(RegExp(/\[(\d{2}-\w{2}-\d{2})\]/))?.at(1) ?? "",
+        "yyyyMMdd",
+      );
+      if (entryDate.includes("Bad")) {
+        // print(`Bad Date: ${parts[0]}`);
+        return [false, row];
+      }
+
+      const entryHash = parts[2].slice(0, 7);
+      if (entryHash.length !== 7) {
+        // print(`Bad Hash: ${entryHash}`);
+        return [false, row];
+      }
+
+      const entryRemarks = parts.slice(3).join(" ");
+
+      return [true, `${entryDate} ${entryId} ${entryHash} ${entryRemarks}` as string];
+    });
+
+    const stats = parsedWhiteboard.filter(([valid]) => valid);
+    stats.unshift([true, `${date} ${playerId} ${SHA} ${remarks}`]);
+
+    const mappedStats: textCheck[] = stats.map(([valid, row]) => {
+      if (!valid) return [false, row];
+      const parts = row.split(" ");
+      const entryDate = formatDateTime("yyyyMMdd", parts[0], "dd-MM-yy");
+      const entryId = parts[1];
+      const entryHash = parts[2];
+      const entryRemarks = parts.slice(3).join(" ");
+      return [true, `[${entryDate}] (#${entryId}) ${entryHash} ${entryRemarks}`];
+    });
+
+    const updateText = [
+      ...mappedStats.filter(([valid]) => valid),
+      ...mappedStats.filter(([valid]) => !valid),
+      ...parsedWhiteboard.filter(([valid]) => !valid),
+    ]
+      .map(([, row]) => row.replace(RegExp(/[\\r\\n]/g), ""))
+      .filter((row) => row.length >= 15)
+      .join("\n");
+
+    writeToWhiteboard(updateText);
+  } catch (e) {
+    //No-op
+  }
+}
+
+export function checkGithubVersion(verbose = true): string {
+  let SHAString = "";
   try {
     const gitBranches: { name: string; commit: { sha: string } }[] = JSON.parse(
       visitUrl(`https://api.github.com/repos/Pantocyclus/InstantSCCS/branches`),
@@ -137,20 +261,24 @@ export function checkGithubVersion(): void {
     const releaseSHA = releaseBranch?.commit.sha ?? "Not Found";
     const localBranch = gitInfo("Pantocyclus-instantsccs-release");
     const localSHA = localBranch.commit;
-    if (releaseSHA === localSHA) {
-      print("InstantSCCS is up to date!", "green");
-    } else {
-      print(
-        `InstantSCCS is out of date - your version was last updated on ${localBranch.last_changed_date}.`,
-        "red",
-      );
-      print("Please run 'git update'!", "red");
-      print(`Local Version: ${localSHA}.`);
-      print(`Release Version: ${releaseSHA}`);
+    SHAString = localSHA;
+    if (verbose) {
+      if (releaseSHA === localSHA) {
+        print("InstantSCCS is up to date!", "green");
+      } else {
+        print(
+          `InstantSCCS is out of date - your version was last updated on ${localBranch.last_changed_date}.`,
+          "red",
+        );
+        print("Please run 'git update'!", "red");
+        print(`Local Version: ${localSHA}.`);
+        print(`Release Version: ${releaseSHA}`);
+      }
     }
   } catch (e) {
     print("Failed to fetch GitHub data", "red");
   }
+  return SHAString;
 }
 
 export function simpleDateDiff(t1: string, t2: string): number {
@@ -199,7 +327,7 @@ function logRelevantStats(whichTest: CommunityService): void {
   }
 }
 
-export function logTestSetup(whichTest: CommunityService): void {
+function logTestSetup(whichTest: CommunityService): void {
   const testTurns = whichTest.actualCost();
   printModtrace(testModifiers.get(whichTest) ?? []);
   logRelevantStats(whichTest);
@@ -215,6 +343,33 @@ export function logTestSetup(whichTest: CommunityService): void {
     `_CSTest${whichTest.id}`,
     testTurns + (have($effect`Simmering`) && !have($item`April Shower Thoughts shield`) ? 1 : 0),
   );
+}
+
+export function runTest(csTest: CommunityService): void {
+  const csTestLimitPref = testAbbreviations.get(csTest) ?? "";
+  const csTestDefaultLimit = testLimits.get(csTest) ?? 60;
+
+  const maxTurns = get(`instant_${csTestLimitPref}TestTurnLimit`, csTestDefaultLimit);
+  const testTurns = csTest.actualCost();
+
+  if (testTurns > maxTurns) {
+    print(`Expected to take ${testTurns}, which is more than ${maxTurns}.`, "red");
+    print("Either there was a bug, or you are under-prepared for this test", "red");
+    print("Manually complete the test if you think this is fine.", "red");
+    print(
+      `You may also increase the turn limit by typing 'set ${csTestLimitPref}=<new limit>'`,
+      "red",
+    );
+  }
+
+  const result = withProperty("_mummeryMods", "", () =>
+    csTest.run(() => logTestSetup(csTest), maxTurns),
+  );
+  if (result.includes("completed") && !get("csServicesPerformed").includes(csTest.name)) {
+    print(`Detected that ${csTest.name} was incorrectly marked as incomplete!`, "red");
+    print(`Setting ${csTest.name} as completed!`, "blue");
+    set("csServicesPerformed", get("csServicesPerformed").split(",").concat(csTest.name).join(","));
+  }
 }
 
 export const mainStat = myPrimestat();
