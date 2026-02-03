@@ -740,17 +740,38 @@ export const LevelingQuest: Quest = {
           tryAcquiringEffect($effect`Cyber Resist x2000`);
         }
 
-        // Grab Bembershoots
-        const bembershootQty = get("instant_skipBembershootForJacket", false) ? 2 : 3;
-        visitUrl(
-          `shop.php?whichshop=september&action=buyitem&quantity=${bembershootQty}&whichrow=1516&pwd`,
+        const jacketEmbers =
+          get("instant_skipBembershootForJacket", false) && !have($item`embers-only jacket`)
+            ? 1
+            : 0;
+        const bembershootEmbers = Math.max(
+          0,
+          Math.min(get("instant_skipDuplicateBembershoots", false) ? 1 : 3, 3 - jacketEmbers) -
+            itemAmount($item`bembershoot`),
         );
+        const mouthwashEmbers = get("availableSeptEmbers") - jacketEmbers - bembershootEmbers; // This could be >7 on multi-day runs
+
+        // Grab Bembershoots
+        if (bembershootEmbers > 0) {
+          const bembershootQty = bembershootEmbers;
+          visitUrl(
+            `shop.php?whichshop=september&action=buyitem&quantity=${bembershootQty}&whichrow=1516&pwd`,
+          );
+        }
 
         // Grab Mouthwashes
-        visitUrl("shop.php?whichshop=september&action=buyitem&quantity=2&whichrow=1512&pwd");
+        if (mouthwashEmbers >= 2) {
+          const mouthwashQty = Math.floor(mouthwashEmbers / 2);
+          visitUrl(
+            `shop.php?whichshop=september&action=buyitem&quantity=${mouthwashQty}&whichrow=1512&pwd`,
+          );
+        }
 
-        cliExecute("maximize cold res");
-        use($item`Mmm-brr! brand mouthwash`, 2);
+        // Use all the Mouthwashes we have (in case we also pulled any)
+        if (itemAmount($item`Mmm-brr! brand mouthwash`) > 0) {
+          cliExecute("maximize cold res");
+          use($item`Mmm-brr! brand mouthwash`, itemAmount($item`Mmm-brr! brand mouthwash`));
+        }
       },
       limit: { tries: 1 },
       outfit: {
@@ -1157,6 +1178,42 @@ export const LevelingQuest: Quest = {
       limit: { tries: 1 },
     },
     {
+      name: "Snokebomb",
+      prepare: (): void => {
+        restoreHp(clamp(1000, myMaxhp() / 2, myMaxhp()));
+        unbreakableUmbrella();
+        attemptRestoringMpWithFreeRests(50);
+
+        if (
+          myClass() === $class`Pastamancer` &&
+          have($item`Sept-Ember Censer`) &&
+          have($item`Daylight Shavings Helmet`) &&
+          get("lastBeardBuff") === 0 && // We have not gotten the beard buff yet
+          !get("instant_saveEmbers", false) &&
+          !have($item`bembershoot`) // We have not used the mouthwash yet
+        )
+          equip($slot`hat`, $item`Daylight Shavings Helmet`); // Grab Grizzly Beard for mouthwash
+      },
+      completed: () => get("_snokebombUsed") >= 3 - get("instant_saveSBForInnerElf", 0),
+      do: powerlevelingLocation(),
+      combat: new CombatStrategy().macro(Macro.trySkill($skill`Snokebomb`).abort()),
+      outfit: () => ({
+        ...baseOutfit(),
+        modifier: `0.25 ${mainStatMaximizerStr}, 0.33 ML, -equip tinsel tights, -equip wad of used tape, -equip Kramco Sausage-o-Matic™`,
+      }),
+      choices: {
+        1094: 5,
+        1115: 6,
+        1322: 2,
+        1324: 5,
+      },
+      post: (): void => {
+        sendAutumnaton();
+        sellMiscellaneousItems();
+      },
+      limit: { tries: 4 },
+    },
+    {
       name: "Get Rufus Quest",
       completed: () => get("_shadowAffinityToday") || !have($item`closed-circuit pay phone`),
       do: (): void => {
@@ -1446,42 +1503,6 @@ export const LevelingQuest: Quest = {
       post: (): void => {
         sellMiscellaneousItems();
       },
-    },
-    {
-      name: "Snokebomb",
-      prepare: (): void => {
-        restoreHp(clamp(1000, myMaxhp() / 2, myMaxhp()));
-        unbreakableUmbrella();
-        attemptRestoringMpWithFreeRests(50);
-
-        if (
-          myClass() === $class`Pastamancer` &&
-          have($item`Sept-Ember Censer`) &&
-          have($item`Daylight Shavings Helmet`) &&
-          get("lastBeardBuff") === 0 && // We have not gotten the beard buff yet
-          !get("instant_saveEmbers", false) &&
-          !have($item`bembershoot`) // We have not used the mouthwash yet
-        )
-          equip($slot`hat`, $item`Daylight Shavings Helmet`); // Grab Grizzly Beard for mouthwash
-      },
-      completed: () => get("_snokebombUsed") >= 3 - get("instant_saveSBForInnerElf", 0),
-      do: powerlevelingLocation(),
-      combat: new CombatStrategy().macro(Macro.trySkill($skill`Snokebomb`).abort()),
-      outfit: () => ({
-        ...baseOutfit(),
-        modifier: `0.25 ${mainStatMaximizerStr}, 0.33 ML, -equip tinsel tights, -equip wad of used tape, -equip Kramco Sausage-o-Matic™`,
-      }),
-      choices: {
-        1094: 5,
-        1115: 6,
-        1322: 2,
-        1324: 5,
-      },
-      post: (): void => {
-        sendAutumnaton();
-        sellMiscellaneousItems();
-      },
-      limit: { tries: 4 },
     },
     {
       name: "Get Totem and Saucepan",
