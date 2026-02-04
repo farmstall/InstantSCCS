@@ -1044,7 +1044,7 @@ export const LevelingQuest: Quest = {
       completed: () =>
         !have($item`Peridot of Peril`) ||
         have($item`li'l ninja costume`) ||
-        !have($familiar`Trick-or-Treating Tot`),
+        !haveAndNotExcluded($familiar`Trick-or-Treating Tot`),
       do: $location`The Haiku Dungeon`,
       combat: new CombatStrategy().macro(
         Macro.if_(
@@ -1085,7 +1085,7 @@ export const LevelingQuest: Quest = {
         !have($skill`Map the Monsters`) ||
         get("_monstersMapped") >= 3 ||
         have($item`li'l ninja costume`) ||
-        !have($familiar`Trick-or-Treating Tot`) ||
+        !haveAndNotExcluded($familiar`Trick-or-Treating Tot`) ||
         get("instant_skipMappingNinja", false),
       do: () => mapMonster($location`The Haiku Dungeon`, $monster`amateur ninja`),
       combat: new CombatStrategy().macro(
@@ -1404,12 +1404,12 @@ export const LevelingQuest: Quest = {
       completed: () =>
         get("instant_saveMimicEggs", false) ||
         get("_mimicEggsObtained") > 0 ||
-        !haveAndNotExcluded($familiar`Chest Mimic`) ||
+        !have($familiar`Chest Mimic`) ||
         (!(have($familiar`Shorter-Order Cook`) && have($item`blue plate`)) &&
           !(have($item`Apriling band piccolo`) && get("_aprilBandPiccoloUses") < 3)),
       do: (): void => {
         const currentFamiliar = myFamiliar();
-        if (haveAndNotExcluded($familiar`Shorter-Order Cook`) && have($item`blue plate`)) {
+        if (have($familiar`Shorter-Order Cook`) && have($item`blue plate`)) {
           useFamiliar($familiar`Shorter-Order Cook`);
           equip($slot`familiar`, $item`blue plate`);
         }
@@ -1891,7 +1891,7 @@ export const LevelingQuest: Quest = {
         tryAcquiringEffects(usefulEffects);
         attemptRestoringMpWithFreeRests(50);
       },
-      completed: () => get("_godLobsterFights") >= 3 || !have($familiar`God Lobster`),
+      completed: () => get("_godLobsterFights") >= 3 || !haveAndNotExcluded($familiar`God Lobster`),
       do: () => visitUrl("main.php?fightgodlobster=1"),
       combat: new CombatStrategy().macro(Macro.default(useCinch)),
       choices: { 1310: have($item`God Lobster's Ring`) ? 2 : 3 }, // Get xp on last fight
@@ -1983,7 +1983,8 @@ export const LevelingQuest: Quest = {
         tryAcquiringEffects(usefulEffects);
         attemptRestoringMpWithFreeRests(50);
       },
-      completed: () => get("_machineTunnelsAdv") >= 5 || !have($familiar`Machine Elf`),
+      completed: () =>
+        get("_machineTunnelsAdv") >= 5 || !haveAndNotExcluded($familiar`Machine Elf`),
       do: $location`The Deep Machine Tunnels`,
       combat: new CombatStrategy().macro(Macro.default(useCinch)),
       outfit: () => ({
