@@ -229,6 +229,8 @@ const usefulEffects: Effect[] = [
   // $effect`Think Win-Lose`,
   // $effect`Confidence of the Votive`,
   $effect`Song of Bravado`,
+  // eslint-disable-next-line libram/verify-constants
+  $effect`Ultraheart`,
   ...statEffects,
 
   // ML
@@ -2271,7 +2273,7 @@ export const LevelingQuest: Quest = {
           return {
             ...baseOutfit(),
             shirt: garbageShirt(),
-            weapon: legendarySealClubbingClub("Time"),
+            weapon: legendarySealClubbingClub("Time", true),
             offhand: $item`unbreakable umbrella`,
             acc3: docBag(),
             modes: { umbrella: "broken" },
@@ -2280,7 +2282,7 @@ export const LevelingQuest: Quest = {
           return {
             ...baseOutfit(),
             shirt: garbageShirt(),
-            weapon: legendarySealClubbingClub("Time"),
+            weapon: legendarySealClubbingClub("Time", true),
             offhand: $items`latte lovers member's mug, unbreakable umbrella`,
             acc3: docBag(),
             modes: { umbrella: "broken" },
