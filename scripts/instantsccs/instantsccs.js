@@ -16245,8 +16245,8 @@ var BoozeDropQuest = {
       handleCustomBusks("instant_boozeTestBusks");
       if (CommunityService.BoozeDrop.actualCost() > 1 && distillateModifier("Item Drop") >= 15 && !get("instant_saveStillsuit", false) && kolmafia.myInebriety() + 1 < kolmafia.inebrietyLimit() && !acquiredOrExcluded($effect(_templateObject143 || (_templateObject143 = _taggedTemplateLiteral(["Buzzed on Distillate"]))))) drinkDistillate();
 
-      // If it saves us >= 6 turns, try using a wish
-      if (CommunityService.BoozeDrop.actualCost() >= 7) wishFor($effect(_templateObject144 || (_templateObject144 = _taggedTemplateLiteral(["Infernal Thirst"]))));
+      // If it saves us >= 6 turns, try using a wish (CS edited from 7 to 4)
+      if (CommunityService.BoozeDrop.actualCost() >= 4) wishFor($effect(_templateObject144 || (_templateObject144 = _taggedTemplateLiteral(["Infernal Thirst"]))));
     },
     completed: () => CommunityService.BoozeDrop.isDone(),
     do: () => runTest(CommunityService.BoozeDrop),
@@ -16581,9 +16581,10 @@ var WeaponDamageQuest = {
       }
 
       // If it saves us >= 6 turns, try using a wish
+      // edited to >= 5 turns
       if (CommunityService.WeaponDamage.actualCost() >= 7) wishFor($effect(_templateObject93$1 || (_templateObject93$1 = _taggedTemplateLiteral(["Outer Wolf\u2122"]))));
       $effects(_templateObject94$1 || (_templateObject94$1 = _taggedTemplateLiteral(["Spit Upon, Pyramid Power"]))).forEach(ef => {
-        if (CommunityService.WeaponDamage.actualCost() >= 5) wishFor(ef); // The effects each save 2 turns on spelltest as well
+        if (CommunityService.WeaponDamage.actualCost() >= 3) wishFor(ef); // The effects each save 2 turns on spelltest as well
       });
       if (!acquiredOrExcluded($effect(_templateObject95$1 || (_templateObject95$1 = _taggedTemplateLiteral(["Rictus of Yeg"])))) && CommunityService.WeaponDamage.actualCost() >= 5 && !get("_cargoPocketEmptied") && have$a($item(_templateObject96$1 || (_templateObject96$1 = _taggedTemplateLiteral(["Cargo Cultist Shorts"])))) && !get("instant_saveCargoShorts", false)) {
         kolmafia.visitUrl("inventory.php?action=pocket");
