@@ -476,8 +476,8 @@ export const BoozeDropQuest: Quest = {
         )
           StillSuit.drinkDistillate();
 
-        // If it saves us >= 6 turns, try using a wish
-        if (CommunityService.BoozeDrop.actualCost() >= 7) wishFor($effect`Infernal Thirst`);
+        // If it saves us >= 6 turns, try using a wish (CS edited from 7 to 4)
+        if (CommunityService.BoozeDrop.actualCost() >= 4) wishFor($effect`Infernal Thirst`);
       },
       completed: () => CommunityService.BoozeDrop.isDone(),
       do: (): void => runTest(CommunityService.BoozeDrop),
