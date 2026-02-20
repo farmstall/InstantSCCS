@@ -17397,10 +17397,9 @@ var WeaponDamageQuest = {
       }
 
       // If it saves us >= 6 turns, try using a wish
-      // edited to >= 5 turns
       if (CommunityService.WeaponDamage.actualCost() >= 7) wishFor($effect(_templateObject93 || (_templateObject93 = _taggedTemplateLiteral(["Outer Wolf\u2122"]))));
       $effects(_templateObject94 || (_templateObject94 = _taggedTemplateLiteral(["Spit Upon, Pyramid Power"]))).forEach(ef => {
-        if (CommunityService.WeaponDamage.actualCost() >= 3) wishFor(ef); // The effects each save 2 turns on spelltest as well
+        if (CommunityService.WeaponDamage.actualCost() >= 2) wishFor(ef); // The effects each save 2 turns on spelltest as well (CS edited turn limit from 5 to 2)
       });
       if (!acquiredOrExcluded($effect(_templateObject95 || (_templateObject95 = _taggedTemplateLiteral(["Rictus of Yeg"])))) && CommunityService.WeaponDamage.actualCost() >= 5 && !get("_cargoPocketEmptied") && have$a($item(_templateObject96 || (_templateObject96 = _taggedTemplateLiteral(["Cargo Cultist Shorts"])))) && !get("instant_saveCargoShorts", false)) {
         kolmafia.visitUrl("inventory.php?action=pocket");
