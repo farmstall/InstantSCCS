@@ -45,8 +45,8 @@ import {
   SongBoom,
 } from "libram";
 import Macro, { haveFreeBanish, haveMotherSlimeBanish } from "../combat";
+import { sugarItemsAboutToBreak } from "../outfit";
 import { Quest } from "../engine/task";
-import { chooseFamiliar } from "../familiars";
 import {
   acquiredOrExcluded,
   attemptRestoringMpWithFreeRests,
@@ -61,8 +61,8 @@ import {
   tryAcquiringOdeToBooze,
   wishFor,
 } from "../lib";
-import { sugarItemsAboutToBreak } from "../outfit";
 import { powerlevelingLocation } from "./leveling";
+import { chooseFamiliar } from "../familiars";
 
 const attemptKFH = have($skill`Kung Fu Hustler`) && haveAndNotExcluded($familiar`Disembodied Hand`);
 const wpnTestMaximizerString = "weapon dmg, switch disembodied hand, -switch left-hand man";
@@ -309,10 +309,9 @@ export const WeaponDamageQuest: Quest = {
         }
 
         // If it saves us >= 6 turns, try using a wish
-        // edited to >= 5 turns
         if (CommunityService.WeaponDamage.actualCost() >= 7) wishFor($effect`Outer Wolf™`);
         $effects`Spit Upon, Pyramid Power`.forEach((ef) => {
-          if (CommunityService.WeaponDamage.actualCost() >= 3) wishFor(ef); // The effects each save 2 turns on spelltest as well
+          if (CommunityService.WeaponDamage.actualCost() >= 2) wishFor(ef); // The effects each save 2 turns on spelltest as well (CS edited turn limit from 5 to 2)
         });
 
         if (
