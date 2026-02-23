@@ -13504,9 +13504,9 @@ function garbageShirt() {
   }
   return undefined;
 }
-function docBag() {
+function docBag(defaultItem) {
   if (have$a($item(_templateObject19$9 || (_templateObject19$9 = _taggedTemplateLiteral(["Lil' Doctor\u2122 bag"])))) && get("_chestXRayUsed") < 3) return $item(_templateObject20$9 || (_templateObject20$9 = _taggedTemplateLiteral(["Lil' Doctor\u2122 bag"])));
-  return reduceItemUndefinedArray([baseOutfit().acc1, baseOutfit().acc2, baseOutfit().acc3]);
+  return defaultItem;
 }
 function sugarItemsAboutToBreak() {
   var sugarItems = [{
@@ -14883,7 +14883,7 @@ var LevelingQuest = {
     outfit: () => _objectSpread2(_objectSpread2({}, baseOutfit()), {}, {
       offhand: $item(_templateObject312$1 || (_templateObject312$1 = _taggedTemplateLiteral(["unbreakable umbrella"]))),
       acc2: $item(_templateObject313$1 || (_templateObject313$1 = _taggedTemplateLiteral(["Peridot of Peril"]))),
-      acc3: docBag(),
+      acc3: docBag(baseOutfit().acc3),
       familiar: $familiar(_templateObject314$1 || (_templateObject314$1 = _taggedTemplateLiteral(["Trick-or-Treating Tot"]))),
       modifier: "0.25 ".concat(mainStatMaximizerStr, ", 0.33 ML, -equip tinsel tights, -equip wad of used tape, -equip Kramco Sausage-o-Matic\u2122"),
       modes: {
@@ -14912,7 +14912,7 @@ var LevelingQuest = {
     combat: new CombatStrategy().macro(Macro.if_($monster(_templateObject326 || (_templateObject326 = _taggedTemplateLiteral(["amateur ninja"]))), Macro.tryItem($item(_templateObject327 || (_templateObject327 = _taggedTemplateLiteral(["blue rocket"])))).tryItem($item(_templateObject328 || (_templateObject328 = _taggedTemplateLiteral(["red rocket"])))).trySkill($skill(_templateObject329 || (_templateObject329 = _taggedTemplateLiteral(["Chest X-Ray"])))).trySkill($skill(_templateObject330 || (_templateObject330 = _taggedTemplateLiteral(["Gingerbread Mob Hit"])))).trySkill($skill(_templateObject331 || (_templateObject331 = _taggedTemplateLiteral(["Shattering Punch"])))).default()).abort()),
     outfit: () => _objectSpread2(_objectSpread2({}, baseOutfit()), {}, {
       offhand: $item(_templateObject332 || (_templateObject332 = _taggedTemplateLiteral(["unbreakable umbrella"]))),
-      acc3: docBag(),
+      acc3: docBag(baseOutfit().acc3),
       familiar: $familiar(_templateObject333 || (_templateObject333 = _taggedTemplateLiteral(["Trick-or-Treating Tot"]))),
       modifier: "0.25 ".concat(mainStatMaximizerStr, ", 0.33 ML, -equip tinsel tights, -equip wad of used tape, -equip Kramco Sausage-o-Matic\u2122"),
       modes: {
@@ -15856,25 +15856,15 @@ var LevelingQuest = {
       tryAcquiringEffects(usefulEffects);
       attemptRestoringMpWithFreeRests(50);
     },
-    outfit: () => {
-      if (chooseLibram() === $skill.none || !have$a($item(_templateObject588 || (_templateObject588 = _taggedTemplateLiteral(["latte lovers member's mug"])))) || get("_latteRefillsUsed") >= 3) return _objectSpread2(_objectSpread2({}, baseOutfit()), {}, {
-        shirt: garbageShirt(),
-        weapon: legendarySealClubbingClub("Time", true),
-        offhand: $item(_templateObject589 || (_templateObject589 = _taggedTemplateLiteral(["unbreakable umbrella"]))),
-        acc3: docBag(),
-        modes: {
-          umbrella: "broken"
-        }
-      });else return _objectSpread2(_objectSpread2({}, baseOutfit()), {}, {
-        shirt: garbageShirt(),
-        weapon: legendarySealClubbingClub("Time", true),
-        offhand: $items(_templateObject590 || (_templateObject590 = _taggedTemplateLiteral(["latte lovers member's mug, unbreakable umbrella"]))),
-        acc3: docBag(),
-        modes: {
-          umbrella: "broken"
-        }
-      });
-    },
+    outfit: () => _objectSpread2(_objectSpread2({}, baseOutfit()), {}, {
+      shirt: garbageShirt(),
+      weapon: legendarySealClubbingClub("Time", true),
+      offhand: reduceItemUndefinedArray([chooseLibram() === $skill.none || !have$a($item(_templateObject588 || (_templateObject588 = _taggedTemplateLiteral(["latte lovers member's mug"])))) || get("_latteRefillsUsed") >= 3 ? $item(_templateObject589 || (_templateObject589 = _taggedTemplateLiteral(["latte lovers member's mug"]))) : undefined, $item(_templateObject590 || (_templateObject590 = _taggedTemplateLiteral(["unbreakable umbrella"])))]),
+      acc3: docBag(baseOutfit().acc3),
+      modes: {
+        umbrella: "broken"
+      }
+    }),
     completed: () => kolmafia.myBasestat(mainStat) >= targetBaseMainStat && (get("_clubEmTimeUsed", 0) >= 5 - get("instant_saveClubEmTime", 0) ||
     // eslint-disable-next-line libram/verify-constants
     !have$a($item(_templateObject591 || (_templateObject591 = _taggedTemplateLiteral(["legendary seal-clubbing club"])))) || !havePowerlevelingZoneBound()) && (get("_shatteringPunchUsed") >= 3 || !have$a($skill(_templateObject592 || (_templateObject592 = _taggedTemplateLiteral(["Shattering Punch"]))))) && (get("_gingerbreadMobHitUsed") || !have$a($skill(_templateObject593 || (_templateObject593 = _taggedTemplateLiteral(["Gingerbread Mob Hit"]))))) && (haveCBBIngredients(true) || overleveled()),
