@@ -25,6 +25,7 @@ import {
   undelay,
   uneffect,
 } from "libram";
+import { baseOutfit, reduceItemUndefinedArray } from "../outfit";
 import { excludedFamiliars } from "../resources";
 import { Task } from "./task";
 
@@ -218,7 +219,7 @@ export class Engine extends BaseEngine {
 
     // spec is an OutfitSpec
     for (const slotName of outfitSlots) {
-      const itemOrItems = spec[slotName];
+      const itemOrItems = reduceItemUndefinedArray([spec[slotName], baseOutfit()[slotName]]);
       if (itemOrItems) {
         if (itemOrItems instanceof Item) {
           if (!have(itemOrItems) && itemOrItems !== null) {
@@ -238,6 +239,12 @@ export class Engine extends BaseEngine {
         }
       }
     }
+
+    const itemsToEquip = outfitSlots
+      .map((slotName) => spec[slotName])
+      .flat()
+      .filter((it) => it !== undefined);
+    spec.avoid = spec.avoid?.filter((it) => !itemsToEquip.includes(it));
     return Outfit.from(spec, new Error("Failed to equip outfit"));
   }
 
