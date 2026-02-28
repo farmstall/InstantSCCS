@@ -47,6 +47,7 @@ import {
   toItem,
   totalFreeRests,
   totalTurnsPlayed,
+  turnsPlayed,
   use,
   useFamiliar,
   useSkill,
@@ -97,6 +98,7 @@ import {
   attemptRestoringMpWithFreeRests,
   bestShadowRift,
   burnLibram,
+  canAcquireDwellingBuff,
   canPull,
   canScreech,
   chooseLibram,
@@ -355,7 +357,9 @@ function sellMiscellaneousItems(): void {
 
 export const LevelingQuest: Quest = {
   name: "Leveling",
-  completed: () => get("csServicesPerformed").split(",").length > 1,
+  completed: () =>
+    get("csServicesPerformed").split(",").length > 1 ||
+    get("_instant_levelingTurns", Number.MIN_SAFE_INTEGER) >= 0,
   tasks: [
     /*
     {
@@ -1078,7 +1082,7 @@ export const LevelingQuest: Quest = {
         offhand: $item`unbreakable umbrella`,
         acc1: mobiusRing(),
         acc2: $item`Peridot of Peril`,
-        acc3: docBag(baseOutfit().acc3),
+        acc3: docBag(),
         familiar: $familiar`Trick-or-Treating Tot`,
         modifier: `0.25 ${mainStatMaximizerStr}, 0.33 ML`,
         modes: { umbrella: "broken" },
@@ -1120,7 +1124,7 @@ export const LevelingQuest: Quest = {
       outfit: () => ({
         ...baseOutfit(),
         offhand: $item`unbreakable umbrella`,
-        acc3: docBag(baseOutfit().acc3),
+        acc3: docBag(),
         familiar: $familiar`Trick-or-Treating Tot`,
         modifier: `0.25 ${mainStatMaximizerStr}, 0.33 ML`,
         modes: { umbrella: "broken" },
@@ -1363,9 +1367,7 @@ export const LevelingQuest: Quest = {
       outfit: () => ({
         ...baseOutfit(),
         acc1: $item`datastick`,
-        acc3: $items`PirateRealm eyepatch, FantasyRealm G. E. M., Personal Ventilation Unit`.filter(
-          have,
-        )?.[0],
+        acc3: $items`PirateRealm eyepatch, FantasyRealm G. E. M., Personal Ventilation Unit`,
       }),
       post: (): void => {
         sendAutumnaton();
@@ -1615,7 +1617,10 @@ export const LevelingQuest: Quest = {
       completed: () =>
         get("timesRested") >= totalFreeRests() - get("instant_saveFreeRests", 0) ||
         get("_cinchUsed") <= 95 ||
-        !useCinch,
+        !useCinch ||
+        (get("instant_skipCampgroundRestoration", false) &&
+          !get("chateauAvailable") &&
+          !get("getawayCampsiteUnlocked")),
       prepare: (): void => {
         if (have($item`Newbiesport™ tent`) && getDwelling() === $item`big rock`)
           use($item`Newbiesport™ tent`);
@@ -2128,6 +2133,12 @@ export const LevelingQuest: Quest = {
       limit: { tries: 1 },
     },
     {
+      name: "Dwelling Buff",
+      completed: () => $effects`Mushed, It's Ridiculous`.every((ef) => !canAcquireDwellingBuff(ef)),
+      do: () => visitUrl("campground.php?action=rest"),
+      limit: { tries: 1 },
+    },
+    {
       name: "Apriling Band Quad Tom Sandworms",
       completed: () => !have($item`Apriling band quad tom`) || get("_aprilBandTomUses") >= 3,
       do: (): void => {
@@ -2298,7 +2309,7 @@ export const LevelingQuest: Quest = {
             : undefined,
           $item`unbreakable umbrella`,
         ]),
-        acc3: docBag(baseOutfit().acc3),
+        acc3: docBag(),
         modes: { umbrella: "broken" },
       }),
       completed: () =>
@@ -2366,6 +2377,12 @@ export const LevelingQuest: Quest = {
         !have($item`wardrobe-o-matic`) ||
         $items`futuristic shirt, futuristic hat, futuristic collar`.some((it) => have(it)),
       do: () => use($item`wardrobe-o-matic`),
+      limit: { tries: 1 },
+    },
+    {
+      name: "Complete Leveling",
+      completed: () => get("_instant_levelingTurns", Number.MIN_SAFE_INTEGER) >= 0,
+      do: () => set("_instant_levelingTurns", turnsPlayed() - get("_CSTest11", 0)),
       limit: { tries: 1 },
     },
   ],

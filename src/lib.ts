@@ -14,6 +14,7 @@ import {
   formatDateTime,
   getCampground,
   getClanName,
+  getDwelling,
   getMonsters,
   getPower,
   gitInfo,
@@ -33,6 +34,7 @@ import {
   myBuffedstat,
   myClass,
   myFamiliar,
+  myHp,
   myId,
   myLevel,
   myMaxhp,
@@ -175,7 +177,8 @@ function readWhiteboard(): string {
 }
 
 export function updateRunStats(): void {
-  if (get("instant_collectData", false)) return;
+  if (!get("instant_collectData", true)) return;
+  if (getClanName().toLowerCase() !== "csloopers unite") return;
   try {
     const text = readWhiteboard();
     const SHA =
@@ -186,6 +189,16 @@ export function updateRunStats(): void {
     const date = todayToString();
 
     // ========== DATA TO TRACK ===========
+    // The data we log to the clan whiteboard is determined by whatever is detailed in the CSLoopers Unite Clan's forum post.
+    // This allows us to dynamically change the data being logged without needing to compile a new build for each change,
+    // with the downside being that we are unable to log outputs from Mafia/Libram functions - we should not be executing
+    // arbitrary code that may (but should definitely not) be placed within the forum post, as these code snippets cannot be
+    // easily vetted through the public GitHub repo*. As an added safety precaution, the forum has been locked down and may
+    // only be modified by trusted developers of this script.
+    // *As of the current implementation, this only parses
+    // (1) Items - Reads the string <[itemId]> and returns availableAmount(toItem(itemId))
+    // (2) Preference Strings - Reads the string <'preference'> and returns get(preference, "?") or "0" / "1" if the preference returns a boolean
+    // (3) Integers - Reads the string <number> and returns number
     const remarks = (
       visitUrl("clan_freadtopic.php?topicid=197960")
         .match(RegExp(/Currently Tracked Stats:<br>(.*?)<\/td>/))
@@ -206,6 +219,8 @@ export function updateRunStats(): void {
               num = availableAmount(toItem(val)).toString();
             } else {
               num = get(val.replace(/[\s']/g, ""), "?");
+              if (num === "true") num = "1";
+              else if (num === "false") num = "0";
             }
             return num;
           })
@@ -282,7 +297,6 @@ export function updateRunStats(): void {
       .join("\n");
 
     writeToWhiteboard(updateText);
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
   } catch (e) {
     //No-op
   }
@@ -310,7 +324,6 @@ export function checkGithubVersion(): boolean {
       print(`Local Version: ${localSHA}.`);
       print(`Release Version: ${releaseSHA}`);
     }
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
   } catch (e) {
     print("Failed to fetch GitHub data", "red");
   }
@@ -333,7 +346,6 @@ export function simpleDateDiff(t1: string, t2: string): number {
   return msDiff;
 }
 
-// From phccs
 export function convertMilliseconds(milliseconds: number): string {
   const seconds = milliseconds / 1000;
   const minutes = Math.floor(seconds / 60);
@@ -1567,5 +1579,53 @@ export function havePowerlevelingZoneBound(): boolean {
   else if (get("coldAirportAlways")) return true;
   else if (get("sleazeAirportAlways")) return true;
   else if (get("spookyAirportAlways")) return true;
+  return false;
+}
+
+export function getFurnishings(): string[] {
+  const buffer = visitUrl("campground.php?action=inspectdwelling");
+  if (buffer.includes("Your patch of ground doesn't have anything inside it.")) return [];
+
+  return [...buffer.matchAll(/<b>(.*?)<\/b>/g)].map((match) => match[1]);
+}
+
+export function canAcquireDwellingBuff(ef: Effect): boolean {
+  if (
+    (myHp() === myMaxhp() && myMp() === myMaxmp()) || // We cannot rest if our HP and MP are both full
+    acquiredOrExcluded(ef) ||
+    get("timesRested") >= totalFreeRests() - get("instant_saveFreeRests", 0)
+  )
+    return false;
+
+  const dwelling = getDwelling();
+
+  if (ef === $effect`Pyramid Power`)
+    return dwelling === $item`BRICKO pyramid` && get("_pyramidRestEffectsGained", 0) < 3;
+  else if (ef === $effect`Juiced and Jacked`)
+    return dwelling === $item`ginormous pumpkin` && !get("_pumpkinRestEffectGained", false);
+  else if (ef === $effect`Uncaged Power`)
+    return dwelling === $item`giant Faraday cage` && !get("_faradayCageRestEffectGained", false);
+  else if (ef === $effect`Snow Fortified`)
+    return dwelling === $item`snow fort` && !get("_snowFortRestEffectGained", false);
+  else if (ef === $effect`It's Ridiculous`)
+    return dwelling === $item`elevent` && !get("_eleventRestEffectGained", false);
+  else if (ef === $effect`Holiday Bliss`)
+    return (
+      (dwelling === $item`gingerbread house` ||
+        getFurnishings().some((s) =>
+          ["Crimbo wreath", "Crimbo lights", "Crimbo reindeer"].includes(s),
+        )) &&
+      !get("_gingerbreadHouseRestEffectGained")
+    );
+  else if (ef === $effect`Hobonic`) return dwelling === $item`hobo fortress blueprints`;
+  else if (ef === $effect`Hypercubed`)
+    return (
+      dwelling === $item`Xiblaxian residence-cube` && !get("_residenceCubeRestEffectGained", false)
+    );
+  else if (ef === $effect`Mushed`)
+    return (
+      dwelling === $item`house-sized mushroom` && !get("_mushroomHouseRestEffectGained", false)
+    );
+
   return false;
 }

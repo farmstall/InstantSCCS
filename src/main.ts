@@ -53,7 +53,7 @@ export const args = Args.create("InstantSCCS", "An automated low-shiny SCCS scri
 });
 
 export function main(command?: string): void {
-  sinceKolmafiaRevision(28920);
+  sinceKolmafiaRevision(28936);
   checkGithubVersion();
 
   Args.fill(args, command);
@@ -86,6 +86,7 @@ export function main(command?: string): void {
 
   const setTimeNow = get(timeProperty, -1) === -1;
   if (setTimeNow) set(timeProperty, nowToString("yyyyMMddhhmmssSSS"));
+  set("_instantsccs_runsToday", get("_instantsccs_runsToday", 0) + 1);
 
   // Some checks to align mafia prefs
   visitUrl("museum.php?action=icehouse");

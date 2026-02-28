@@ -1,5 +1,7 @@
-import { Engine as BaseEngine, Outfit, outfitSlots } from "grimoire-kolmafia";
+import { Engine as BaseEngine, Outfit, outfitSlots, OutfitSpec } from "grimoire-kolmafia";
 import {
+  booleanModifier,
+  canEquip,
   Item,
   itemAmount,
   myFullness,
@@ -25,7 +27,7 @@ import {
   undelay,
   uneffect,
 } from "libram";
-import { baseOutfit, reduceItemUndefinedArray } from "../outfit";
+import { baseOutfit, defaultModifier, reduceItemUndefinedArray } from "../outfit";
 import { excludedFamiliars } from "../resources";
 import { Task } from "./task";
 
@@ -133,6 +135,31 @@ export const trackedResources: trackedResource[] = [
   ...farmingResourceResources,
 ];
 
+function parseOutfitSpec(spec: OutfitSpec): string {
+  const s: string = outfitSlots
+    .map(
+      (slotName) =>
+        `${slotName}: ${
+          spec[slotName]
+            ? [spec[slotName]]
+                .flat()
+                .map((it) => it.name)
+                .join(", ")
+            : "undefined"
+        }`,
+    )
+    .join(" | ");
+
+  return `${s} | familiar: ${spec.familiar ? spec.familiar.name : ""} | avoid: ${
+    spec.avoid
+      ? [spec.avoid]
+          .flat()
+          .map((it) => it.name)
+          .join(", ")
+      : ""
+  } | modifiers: ${spec.modifier ? [spec.modifier].flat().join(", ") : ""}`;
+}
+
 export class Engine extends BaseEngine {
   public getNextTask(): Task | undefined {
     return this.tasks.find((task) => !task.completed() && (task.ready ? task.ready() : true));
@@ -158,7 +185,7 @@ export class Engine extends BaseEngine {
         ].includes(get("lastEncounter"))
       )
         uneffect($effect`Beaten Up`);
-      else throw "Fight was lost; stop.";
+      else throw new Error("Fight was lost; stop.");
     }
     originalValues.forEach(([resource, val]) => {
       const trackingMafiaPref = get(resource, "").toString().length > 0;
@@ -217,35 +244,42 @@ export class Engine extends BaseEngine {
       return spec.clone();
     }
 
+    const itemsToEquip: Set<Item> = new Set<Item>();
+
     // spec is an OutfitSpec
-    for (const slotName of outfitSlots) {
-      const itemOrItems = reduceItemUndefinedArray([spec[slotName], baseOutfit()[slotName]]);
-      if (itemOrItems) {
-        if (itemOrItems instanceof Item) {
-          if (!have(itemOrItems) && itemOrItems !== null) {
-            print(`Ignoring slot ${slotName} because we don't have ${itemOrItems}`, "red");
+    outfitSlots.forEach((slotName) => {
+      if (spec[slotName] !== undefined) {
+        // If slot was intentionally undefined, leave it up to the maximizer
+        // Otherwise check if any of the items can be equipped
+        const items = [spec[slotName]]
+          .flat()
+          .filter((it) => !(itemsToEquip.has(it) && booleanModifier(it, "Single Equip")))
+          .filter((it) => have(it) || it === Item.none)
+          .filter((it) => canEquip(it));
+
+        if (items.length === 0) {
+          if (spec.modifier === defaultModifier) {
+            // If nothing can be equipped, trying using default equips if there isn't a custom modifier
+            spec[slotName] = reduceItemUndefinedArray([baseOutfit()[slotName]])
+              ?.filter((it) => !(itemsToEquip.has(it) && booleanModifier(it, "Single Equip")))
+              .filter((it) => have(it) || it === Item.none)
+              .filter((it) => canEquip(it));
+          } else {
+            // Else if we have a custom modifier, let the maximizer do the equipping instead
             spec[slotName] = undefined;
           }
         } else {
-          if (!itemOrItems.some((it) => have(it) && it !== null)) {
-            print(
-              `Ignoring slot ${slotName} because we don't have ${itemOrItems
-                .map((it) => it.name)
-                .join(", ")}`,
-              "red",
-            );
-            spec[slotName] = undefined;
-          }
+          // If we found equippable items, we will equip the first item
+          // Track the items we are equipping to prevent duplicate equipping of Single Equip items
+          spec[slotName] = items[0];
+          if (items[0] !== Item.none) itemsToEquip.add(items[0]);
         }
       }
-    }
+    });
 
-    const itemsToEquip = outfitSlots
-      .map((slotName) => spec[slotName])
-      .flat()
-      .filter((it) => it !== undefined);
-    spec.avoid = spec.avoid?.filter((it) => !itemsToEquip.includes(it));
-    return Outfit.from(spec, new Error("Failed to equip outfit"));
+    spec.avoid = spec.avoid?.filter((it) => !itemsToEquip.has(it));
+    print(`OutfitSpec: ${parseOutfitSpec(spec)}`, "blue");
+    return Outfit.from(spec, new Error("Failed to equip outfit!"));
   }
 
   dress(task: Task, outfit: Outfit): void {
