@@ -33,6 +33,8 @@ import { Quest } from "../engine/task";
 import { chooseFamiliar } from "../familiars";
 import {
   acquiredOrExcluded,
+  acquireDwellingBuff,
+  canAcquireDwellingBuff,
   handleCustomBusks,
   handleCustomPulls,
   haveAndNotExcluded,
@@ -207,6 +209,12 @@ export const HotResQuest: Quest = {
         cliExecute(`teatree cuppa Frost tea`);
         use($item`cuppa Frost tea`, 1);
       },
+      limit: { tries: 1 },
+    },
+    {
+      name: "Dwelling Buff",
+      completed: () => !canAcquireDwellingBuff($effect`Mushed`),
+      do: () => acquireDwellingBuff($effect`Mushed`),
       limit: { tries: 1 },
     },
     {
