@@ -1440,8 +1440,11 @@ export const LevelingQuest: Quest = {
           Macro.trySkill($skill`Recall Facts: Monster Habitats`),
         )
           .trySkill($skill`Blow the Purple Candle!`)
-          // eslint-disable-next-line libram/verify-constants
-          .trySkill($skill`Club 'Em Into Next Week`)
+          .externalIf(
+            get("_clubEmNextWeekUsed", 0) < 5 - get("instant_saveClubEmNextWeek", 0),
+            // eslint-disable-next-line libram/verify-constants
+            Macro.trySkill($skill`Club 'Em Into Next Week`),
+          )
           .default(useCinch),
       ),
       outfit: () => ({
@@ -1474,16 +1477,10 @@ export const LevelingQuest: Quest = {
         visitUrl("campground.php?preaction=leaves");
         visitUrl("choice.php?pwd&whichchoice=1510&option=1&leaves=11");
       },
-      combat: new CombatStrategy().macro(
-        Macro.trySkill($skill`Otoscope`)
-          // eslint-disable-next-line libram/verify-constants
-          .trySkill($skill`Club 'Em Into Next Week`)
-          .default(),
-      ),
+      combat: new CombatStrategy().macro(Macro.trySkill($skill`Otoscope`).default()),
       outfit: () => ({
         ...baseOutfit(),
         hat: daylightShavingsHelmet(),
-        weapon: legendarySealClubbingClub("NextWeek"),
         offhand: $item`unbreakable umbrella`,
         acc3:
           have($item`Lil' Doctor™ bag`) && get("_otoscopeUsed") < 3
@@ -1772,8 +1769,11 @@ export const LevelingQuest: Quest = {
               Array.from(getBanishedMonsters().values()).includes($monster`fluffy bunny`)),
           Macro.trySkill($skill`Recall Facts: Monster Habitats`),
         )
-          // eslint-disable-next-line libram/verify-constants
-          .trySkill($skill`Club 'Em Into Next Week`)
+          .externalIf(
+            get("_clubEmNextWeekUsed", 0) < 5 - get("instant_saveClubEmNextWeek", 0),
+            // eslint-disable-next-line libram/verify-constants
+            Macro.trySkill($skill`Club 'Em Into Next Week`),
+          )
           .default(useCinch),
       ),
       post: (): void => {
@@ -1952,8 +1952,11 @@ export const LevelingQuest: Quest = {
           Macro.trySkill($skill`Recall Facts: Monster Habitats`),
         )
           .trySkill($skill`Blow the Purple Candle!`)
-          // eslint-disable-next-line libram/verify-constants
-          .trySkill($skill`Club 'Em Into Next Week`)
+          .externalIf(
+            get("_clubEmNextWeekUsed", 0) < 5 - get("instant_saveClubEmNextWeek", 0),
+            // eslint-disable-next-line libram/verify-constants
+            Macro.trySkill($skill`Club 'Em Into Next Week`),
+          )
           .default(useCinch),
       ),
       outfit: () => ({
