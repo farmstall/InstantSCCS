@@ -707,12 +707,9 @@ export const RunStartQuest: Quest = {
           .trySkill($skill`Darts: Aim for the Bullseye`)
           .attack(),
       ),
-      outfit: () => ({
+      outfit: (): OutfitSpec => ({
         ...baseOutfit(false),
-        acc1:
-          have($item`Everfull Dart Holster`) && !have($effect`Everything Looks Red`)
-            ? $item`Everfull Dart Holster`
-            : undefined,
+        acc1: !have($effect`Everything Looks Red`) ? $item`Everfull Dart Holster` : undefined,
         familiar:
           canScreech() && cyberRealmTurnsAvailable() > 0
             ? $familiar`Patriotic Eagle`
@@ -876,7 +873,7 @@ export const RunStartQuest: Quest = {
             .tryItem($item`yellow rocket`),
         ).abort(),
       ),
-      outfit: () => ({
+      outfit: (): OutfitSpec => ({
         ...baseOutfit(false),
         shirt: useParkaSpit ? $item`Jurassic Parka` : undefined,
         offhand: romanCandelabra($effect`Everything Looks Yellow`),
@@ -915,7 +912,7 @@ export const RunStartQuest: Quest = {
             .tryItem($item`yellow rocket`),
         ).abort(),
       ),
-      outfit: () => ({
+      outfit: (): OutfitSpec => ({
         ...baseOutfit(false),
         shirt: useParkaSpit ? $item`Jurassic Parka` : undefined,
         offhand: romanCandelabra($effect`Everything Looks Yellow`),
@@ -939,7 +936,7 @@ export const RunStartQuest: Quest = {
         runChoice(3);
       },
       combat: new CombatStrategy().macro(Macro.default()),
-      outfit: () => baseOutfit(),
+      outfit: (): OutfitSpec => baseOutfit(),
       limit: { tries: 11 },
     },
     {
@@ -970,7 +967,7 @@ export const RunStartQuest: Quest = {
           )
           .abort(),
       ),
-      outfit: () => ({
+      outfit: (): OutfitSpec => ({
         ...baseOutfit(false),
         shirt: useParkaSpit ? $item`Jurassic Parka` : undefined,
         offhand: romanCandelabra($effect`Everything Looks Yellow`),
@@ -1095,7 +1092,7 @@ export const RunStartQuest: Quest = {
             $item`unbreakable umbrella`,
           ]),
           acc2: $item`cursed monkey's paw`,
-          acc3: !have($effect`Everything Looks Green`) ? $item`spring shoes` : undefined,
+          acc3: $item`spring shoes`,
           familiar: chooseFamiliar(false),
           modes: { umbrella: "broken" },
         };
@@ -1203,10 +1200,10 @@ export const RunStartQuest: Quest = {
           .default(),
       ),
       outfit: () => ({
-        ...baseOutfit,
+        ...baseOutfit(),
         familiar: $familiar`Patriotic Eagle`,
         offhand: romanCandelabra($effect`Everything Looks Green`),
-        acc2: have($item`spring shoes`) ? $item`spring shoes` : undefined,
+        acc3: $item`spring shoes`,
       }),
       post: (): void => {
         if (get("lastEncounter") !== "Our Bakery in the Middle of Our Street")
