@@ -1698,7 +1698,7 @@ function saveCached(cacheKey, options) {
     try {
       for (_iterator6.s(); !(_step6 = _iterator6.n()).done;) {
         var slot = _step6.value;
-        equipment.delete(slot);
+        equipment["delete"](slot);
       }
     } catch (err) {
       _iterator6.e(err);
@@ -1706,10 +1706,10 @@ function saveCached(cacheKey, options) {
       _iterator6.f();
     }
     if (options.preventSlot.includes($slot(_templateObject40 || (_templateObject40 = _taggedTemplateLiteral(["buddy-bjorn"]))))) {
-      rider.delete($item(_templateObject41 || (_templateObject41 = _taggedTemplateLiteral(["Buddy Bjorn"]))));
+      rider["delete"]($item(_templateObject41 || (_templateObject41 = _taggedTemplateLiteral(["Buddy Bjorn"]))));
     }
     if (options.preventSlot.includes($slot(_templateObject42 || (_templateObject42 = _taggedTemplateLiteral(["crown-of-thrones"]))))) {
-      rider.delete($item(_templateObject43 || (_templateObject43 = _taggedTemplateLiteral(["Crown of Thrones"]))));
+      rider["delete"]($item(_templateObject43 || (_templateObject43 = _taggedTemplateLiteral(["Crown of Thrones"]))));
     }
   }
   if (options.onlySlot && options.onlySlot.length > 0) {
@@ -1719,7 +1719,7 @@ function saveCached(cacheKey, options) {
       for (_iterator7.s(); !(_step7 = _iterator7.n()).done;) {
         var _slot = _step7.value;
         if (!options.onlySlot.includes(_slot)) {
-          equipment.delete(_slot);
+          equipment["delete"](_slot);
         }
       }
     } catch (err) {
@@ -1728,10 +1728,10 @@ function saveCached(cacheKey, options) {
       _iterator7.f();
     }
     if (!options.onlySlot.includes($slot(_templateObject44 || (_templateObject44 = _taggedTemplateLiteral(["buddy-bjorn"]))))) {
-      rider.delete($item(_templateObject45 || (_templateObject45 = _taggedTemplateLiteral(["Buddy Bjorn"]))));
+      rider["delete"]($item(_templateObject45 || (_templateObject45 = _taggedTemplateLiteral(["Buddy Bjorn"]))));
     }
     if (!options.onlySlot.includes($slot(_templateObject46 || (_templateObject46 = _taggedTemplateLiteral(["crown-of-thrones"]))))) {
-      rider.delete($item(_templateObject47 || (_templateObject47 = _taggedTemplateLiteral(["Crown of Thrones"]))));
+      rider["delete"]($item(_templateObject47 || (_templateObject47 = _taggedTemplateLiteral(["Crown of Thrones"]))));
     }
   }
   var entry = new CacheEntry(equipment, rider, kolmafia.myFamiliar(), canEquipItemCount(), _objectSpread2(_objectSpread2({}, getCurrentModes()), options.modes));
@@ -2397,10 +2397,10 @@ function requireSharedStore() {
   var SHARED = '__core-js_shared__';
   var store = sharedStore.exports = globalThis[SHARED] || defineGlobalProperty(SHARED, {});
   (store.versions || (store.versions = [])).push({
-    version: '3.48.0',
+    version: '3.49.0',
     mode: IS_PURE ? 'pure' : 'global',
     copyright: '© 2013–2025 Denis Pushkarev (zloirock.ru), 2025–2026 CoreJS Company (core-js.io). All rights reserved.',
-    license: 'https://github.com/zloirock/core-js/blob/v3.48.0/LICENSE',
+    license: 'https://github.com/zloirock/core-js/blob/v3.49.0/LICENSE',
     source: 'https://github.com/zloirock/core-js'
   });
   return sharedStore.exports;
@@ -3540,9 +3540,11 @@ function requireWeb_atob() {
   var whitespaces = /[\t\n\f\r ]+/g;
   var finalEq = /[=]{1,2}$/;
   var $atob = getBuiltIn('atob');
+  var $Array = Array;
   var fromCharCode = String.fromCharCode;
   var charAt = uncurryThis(''.charAt);
   var replace = uncurryThis(''.replace);
+  var join = uncurryThis([].join);
   var exec = uncurryThis(disallowed.exec);
   var BASIC = !!$atob && !fails(function () {
     return $atob('aGk=') !== 'hi';
@@ -3572,23 +3574,29 @@ function requireWeb_atob() {
       // `webpack` dev server bug on IE global methods - use call(fn, global, ...)
       if (BASIC && !NO_SPACES_IGNORE && !NO_ENCODING_CHECK) return call($atob, globalThis, data);
       var string = replace(toString(data), whitespaces, '');
-      var output = '';
       var position = 0;
       var bc = 0;
       var length, chr, bs;
-      if (string.length % 4 === 0) {
+      if (!(string.length & 3)) {
         string = replace(string, finalEq, '');
       }
       length = string.length;
-      if (length % 4 === 1 || exec(disallowed, string)) {
+      var lenmod = length & 3;
+      if (lenmod === 1 || exec(disallowed, string)) {
         throw new (getBuiltIn('DOMException'))('The string is not correctly encoded', 'InvalidCharacterError');
       }
+      // (length >> 2) is equivalent for length / 4 floored; * 3 then multiplies the
+      // number of bytes for full quanta
+      // lenmod is length % 4; if there's 2 or 3 bytes it's 1 or 2 bytes of extra output
+      // respectively, so -1, however use a ternary to ensure 0 does not get -1 onto length
+      var output = new $Array((length >> 2) * 3 + (lenmod ? lenmod - 1 : 0));
+      var outputIndex = 0;
       while (position < length) {
         chr = charAt(string, position++);
-        bs = bc % 4 ? bs * 64 + c2i[chr] : c2i[chr];
-        if (bc++ % 4) output += fromCharCode(255 & bs >> (-2 * bc & 6));
+        bs = bc & 3 ? (bs << 6) + c2i[chr] : c2i[chr];
+        if (bc++ & 3) output[outputIndex++] = fromCharCode(255 & bs >> (-2 * bc & 6));
       }
-      return output;
+      return join(output, '');
     }
   });
   return web_atob;
@@ -5213,7 +5221,7 @@ var Clan = /*#__PURE__*/function () {
             if (remaining > 0) {
               map.set(item, remaining);
             } else {
-              map.delete(item);
+              map["delete"](item);
             }
           });
           if (map.size > 0) {
@@ -5276,7 +5284,7 @@ var Clan = /*#__PURE__*/function () {
     value: function withStash(clanIdOrName, items,
     // eslint-disable-line @typescript-eslint/no-explicit-any
     callback) {
-      return Clan._withStash(() => Clan.with(clanIdOrName, clan => clan.take(items)), borrowed => Clan.with(clanIdOrName, clan => clan.put(borrowed)), callback);
+      return Clan._withStash(() => Clan["with"](clanIdOrName, clan => clan.take(items)), borrowed => Clan["with"](clanIdOrName, clan => clan.put(borrowed)), callback);
     }
     /**
      * Get the player's current clan
@@ -5461,7 +5469,7 @@ var CommunityService = /*#__PURE__*/function () {
       if (turnCost > Math.min(maxTurns, kolmafia.myAdventures())) {
         return "failed";
       }
-      if (!this.do()) return "failed";
+      if (!this["do"]()) return "failed";
       CommunityService.log[this.property] = {
         predictedTurns: prediction + additionalTurns,
         turnCost: kolmafia.myTurncount() - turns,
