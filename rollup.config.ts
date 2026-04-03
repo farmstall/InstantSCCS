@@ -27,6 +27,7 @@ const baseSettings = {
         "process.env.GITHUB_REPOSITORY": JSON.stringify(
           process.env.GITHUB_REPOSITORY ?? "CustomBuild",
         ),
+        "\r\n": "\n", // Replaces CRLF with LF
       },
     }),
 
@@ -39,7 +40,7 @@ const baseSettings = {
     babel({
       babelHelpers: "bundled",
       extensions: [".js", ".ts"],
-      exclude: ["node_modules/mafia-shared-relay/**"],
+      // exclude: ["node_modules/mafia-shared-relay/**"],
       babelrc: false,
       presets: [
         [

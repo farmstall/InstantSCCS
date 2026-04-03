@@ -5,7 +5,6 @@ import {
   create,
   Effect,
   equippedItem,
-  familiarWeight,
   getCampground,
   haveEffect,
   itemAmount,
@@ -33,19 +32,20 @@ import {
 } from "libram";
 import Macro from "../combat";
 import { Quest } from "../engine/task";
-import { chooseFamiliar } from "../familiars";
 import {
   acquiredOrExcluded,
+  chooseFamiliar,
   chooseHeaviestEquippedFamiliar,
   expectedFamiliarWeight,
   handleCustomBusks,
   handleCustomPulls,
+  handleCustomWishes,
   haveAndNotExcluded,
+  prepareCodpiece,
   runTest,
   tryAcquiringEffect,
   tryAcquiringEffects,
 } from "../lib";
-import { avoidDaylightShavingsHelm, prepareCodpiece, sugarItemsAboutToBreak } from "../outfit";
 
 const famTestMaximizerString = "familiar weight, -equip dented scepter";
 
@@ -156,6 +156,7 @@ export const FamiliarWeightQuest: Quest = {
         tryAcquiringEffects(usefulEffects, true);
         handleCustomPulls("instant_famTestPulls", famTestMaximizerString);
         handleCustomBusks("instant_famTestBusks");
+        handleCustomWishes("instant_famTestWishes");
 
         if (have($item`love song of icy revenge`))
           use(

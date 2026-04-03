@@ -30,14 +30,16 @@ import {
 } from "libram";
 import Macro from "../combat";
 import { Quest } from "../engine/task";
-import { chooseFamiliar } from "../familiars";
 import {
   acquiredOrExcluded,
   acquireDwellingBuff,
   canAcquireDwellingBuff,
+  chooseFamiliar,
   handleCustomBusks,
   handleCustomPulls,
+  handleCustomWishes,
   haveAndNotExcluded,
+  prepareCodpiece,
   runTest,
   tryAcquiringEffect,
   tryAcquiringEffects,
@@ -45,7 +47,6 @@ import {
   useParkaSpit,
   wishFor,
 } from "../lib";
-import { prepareCodpiece, sugarItemsAboutToBreak } from "../outfit";
 
 const hotTestMaximizerString = "hot res";
 
@@ -255,6 +256,7 @@ export const HotResQuest: Quest = {
         tryAcquiringEffects(usefulEffects, true);
         handleCustomPulls("instant_hotTestPulls", hotTestMaximizerString);
         handleCustomBusks("instant_hotTestBusks");
+        handleCustomWishes("instant_hotTestWishes");
 
         if (
           CommunityService.HotRes.actualCost() >= 4 &&
