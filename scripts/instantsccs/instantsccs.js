@@ -14011,8 +14011,8 @@ var BoozeDropQuest = {
       handleCustomWishes("instant_boozeTestWishes");
       if (CommunityService.BoozeDrop.actualCost() > 1 && distillateModifier("Item Drop") >= 15 && !get("instant_saveStillsuit", false) && kolmafia.myInebriety() + 1 < kolmafia.inebrietyLimit() && !acquiredOrExcluded($effect(_templateObject145$2 || (_templateObject145$2 = _taggedTemplateLiteral(["Buzzed on Distillate"]))))) drinkDistillate();
 
-      // If it saves us >= 6 turns, try using a wish (CS edited from 7 to 4)
-      if (CommunityService.BoozeDrop.actualCost() >= 4) wishFor($effect(_templateObject146$2 || (_templateObject146$2 = _taggedTemplateLiteral(["Infernal Thirst"]))));
+      // If it saves us >= 6 turns, try using a wish
+      if (CommunityService.BoozeDrop.actualCost() >= 7) wishFor($effect(_templateObject146$2 || (_templateObject146$2 = _taggedTemplateLiteral(["Infernal Thirst"]))));
     },
     completed: () => CommunityService.BoozeDrop.isDone(),
     "do": () => runTest(CommunityService.BoozeDrop),
@@ -17655,7 +17655,7 @@ var WeaponDamageQuest = {
       // If it saves us >= 6 turns, try using a wish
       if (CommunityService.WeaponDamage.actualCost() >= 7) wishFor($effect(_templateObject96 || (_templateObject96 = _taggedTemplateLiteral(["Outer Wolf\u2122"]))));
       $effects(_templateObject97 || (_templateObject97 = _taggedTemplateLiteral(["Spit Upon, Pyramid Power"]))).forEach(ef => {
-        if (CommunityService.WeaponDamage.actualCost() >= 2) wishFor(ef); // The effects each save 2 turns on spelltest as well (CS edited turn limit from 5 to 2)
+        if (CommunityService.WeaponDamage.actualCost() >= 5) wishFor(ef); // The effects each save 2 turns on spelltest as well
       });
       if (!acquiredOrExcluded($effect(_templateObject98 || (_templateObject98 = _taggedTemplateLiteral(["Rictus of Yeg"])))) && CommunityService.WeaponDamage.actualCost() >= 5 && !get("_cargoPocketEmptied") && have$a($item(_templateObject99 || (_templateObject99 = _taggedTemplateLiteral(["Cargo Cultist Shorts"])))) && !get("instant_saveCargoShorts", false)) {
         kolmafia.visitUrl("inventory.php?action=pocket");
