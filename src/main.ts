@@ -94,7 +94,7 @@ export function main(command?: string): void {
       .split(",")
       .concat(get("_instant_currentTaskAttempts", ""))
       .filter((s) => s.length > 0)
-      .join(""),
+      .join("|"),
   );
 
   // Some checks to align mafia prefs
