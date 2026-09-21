@@ -461,6 +461,7 @@ export const RunStartQuest: Quest = {
       name: "Mummery",
       completed: () =>
         get("_mummeryMods").includes(`Experience (${mainStat})`) ||
+        get("_mummeryMods").includes(`${mainStat} Experience`) ||
         !have($item`mumming trunk`) ||
         get("instant_saveMummingTrunk", false),
       do: (): void => {
