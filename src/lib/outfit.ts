@@ -173,7 +173,7 @@ function chooseWeapon(): Item | undefined {
   return undefined;
 }
 
-function chooseFamEquip(fam: Familiar): Item | undefined {
+export function chooseFamEquip(fam: Familiar): Item | undefined {
   const useCupid = have($item`toy Cupid bow`) && !get("instant_skipCupid", false);
   const famEquip = familiarEquipment(fam);
   switch (fam) {

@@ -27,7 +27,12 @@ import {
   undelay,
   uneffect,
 } from "libram";
-import { baseOutfit, defaultModifier, reduceItemUndefinedArray } from "../lib/outfit";
+import {
+  baseOutfit,
+  chooseFamEquip,
+  defaultModifier,
+  reduceItemUndefinedArray,
+} from "../lib/outfit";
 import { excludedFamiliars } from "../resources";
 import { Task } from "./task";
 
@@ -282,6 +287,13 @@ export class Engine extends BaseEngine {
     }
 
     // spec is an OutfitSpec
+    if (
+      spec.familiar &&
+      spec.famequip &&
+      ![spec.famequip].flat().some((eq) => canEquip(spec.familiar ?? $familiar.none, eq))
+    ) {
+      spec.famequip = chooseFamEquip(spec.familiar); // Ensure that familiar is correctly equipped
+    }
     outfitSlots.forEach((slotName) => {
       if (spec[slotName] !== undefined) {
         // If slot was intentionally undefined, leave it up to the maximizer
