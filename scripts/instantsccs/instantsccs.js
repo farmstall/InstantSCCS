@@ -12368,6 +12368,9 @@ var Engine = /*#__PURE__*/function (_BaseEngine) {
       }
 
       // spec is an OutfitSpec
+      if (spec.familiar && spec.famequip && ![spec.famequip].flat().some(eq => kolmafia.canEquip(spec.familiar ?? $familiar.none, eq))) {
+        spec.famequip = chooseFamEquip(spec.familiar); // Ensure that familiar is correctly equipped
+      }
       outfitSlots.forEach(slotName => {
         if (spec[slotName] !== undefined) {
           // If slot was intentionally undefined, leave it up to the maximizer
